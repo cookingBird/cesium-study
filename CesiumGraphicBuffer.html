@@ -2,10 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
     <title>缓冲区示例</title>
-    <script src="Cesium/Cesium.js"></script>
-    <link href="Cesium/Widgets/widgets.css" rel="stylesheet" />
+    <script src="Cesium/Build/Cesium.js"></script>
+    <link
+      href="Cesium/Build/Widgets/widgets.css"
+      rel="stylesheet" />
     <script src="plugin/turf.min.js"></script>
     <script src="plugin/cesium-graphicBuffer.js"></script>
     <style>
@@ -41,12 +45,12 @@
     </div>
     <script>
       let radius = 3,
-        bufferEntity = []
+        bufferEntity = [];
       // init
       function initPage() {
         // 切换自己的token
         Cesium.Ion.defaultAccessToken =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYTQ2ZjdjNS1jM2E0LTQ1M2EtOWM0My1mODMzNzY3YjYzY2YiLCJpZCI6MjkzMjcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1OTE5NDIzNjB9.RzKlVTVDTQ9r7cqCo-PDydgUh8Frgw0Erul_BVxiS9c'
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYTQ2ZjdjNS1jM2E0LTQ1M2EtOWM0My1mODMzNzY3YjYzY2YiLCJpZCI6MjkzMjcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1OTE5NDIzNjB9.RzKlVTVDTQ9r7cqCo-PDydgUh8Frgw0Erul_BVxiS9c';
         // 初始化
         let viewer = new Cesium.Viewer('viewer-container', {
           infoBox: false,
@@ -60,76 +64,77 @@
           animation: false,
           timeline: false,
           fullscreenButton: false,
-        })
+        });
 
         window.point = function () {
           // 绘制点 右键结束
           Cesium.drawPointGraphics({ viewer: viewer }).then((point) => {
             // 创建缓冲区范围
-            point = point[0]
-            let turfPositions = turf.point([point.lng, point.lat])
+            point = point[0];
+            let turfPositions = turf.point([point.lng, point.lat]);
             bufferEntity.push(
               Cesium.createGraphicsBuffer({
                 viewer: viewer,
                 animation: true,
                 turfPositions: turfPositions,
                 radius: Number(radius),
-              }),
-            )
-          })
-        }
+              })
+            );
+          });
+        };
 
         window.polyline = function () {
           // 绘制线 右键结束
           Cesium.drawLineGraphics({ viewer: viewer }).then((lines) => {
             // 创建缓冲区范围
-            let _lines = []
+            let _lines = [];
             lines.forEach((line) => {
-              let point = [line.lng, line.lat]
-              _lines.push(point)
-            })
-            let turfPositions = turf.lineString(_lines)
+              let point = [line.lng, line.lat];
+              _lines.push(point);
+            });
+            let turfPositions = turf.lineString(_lines);
             bufferEntity.push(
               Cesium.createGraphicsBuffer({
                 viewer: viewer,
                 animation: true,
                 turfPositions: turfPositions,
                 radius: Number(radius),
-              }),
-            )
-          })
-        }
+              })
+            );
+          });
+        };
 
         window.polygon = function () {
           // 绘制面 右键结束
           Cesium.drawPolygonGraphics({ viewer: viewer }).then((polygons) => {
             // 创建缓冲区范围
-            let _polygons = []
+            let _polygons = [];
             polygons.forEach((polygon) => {
-              let point = [polygon.lng, polygon.lat]
-              _polygons.push(point)
-            })
-            let turfPositions = turf.polygon([_polygons])
+              let point = [polygon.lng, polygon.lat];
+              _polygons.push(point);
+            });
+            let turfPositions = turf.polygon([_polygons]);
             bufferEntity.push(
               Cesium.createGraphicsBuffer({
                 viewer: viewer,
                 animation: true,
                 turfPositions: turfPositions,
                 radius: Number(radius),
-              }),
-            )
-          })
-        }
+              })
+            );
+          });
+        };
 
         window.animation = function () {
-          bufferEntity && bufferEntity.forEach((entity) => (entity.animation = !entity.animation))
-        }
+          bufferEntity &&
+            bufferEntity.forEach((entity) => (entity.animation = !entity.animation));
+        };
       }
 
       // load
       window.onload = function () {
-        initPage()
-      }
+        initPage();
+      };
     </script>
   </body>
 </html>

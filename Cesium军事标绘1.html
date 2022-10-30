@@ -3,7 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <title>军事标绘</title>
-    <link href="Cesium/Widgets/widgets.css" rel="stylesheet" />
+    <link
+      href="Cesium/Build/Widgets/widgets.css"
+      rel="stylesheet" />
     <style>
       html,
       body,
@@ -33,7 +35,7 @@
     </div>
   </body>
 
-  <script src="Cesium/Cesium.js"></script>
+  <script src="Cesium/Build/Cesium.js"></script>
   <script src="plugin/jquery.min.js"></script>
   <script src="plugin/drawArrow/plotUtil.js"></script>
   <script src="plugin/drawArrow/algorithm.js"></script>
@@ -47,7 +49,7 @@
       terrainProvider: new Cesium.CesiumTerrainProvider({
         url: 'http://data.marsgis.cn/terrain',
       }),
-    })
+    });
 
     //var tileset = viewer.scene.primitives.add(
     //new Cesium.Cesium3DTileset({
@@ -67,27 +69,27 @@
     //	tileset.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
     //}).otherwise(function (error) {});
 
-    arrow.disable()
-    arrow.init(viewer)
+    arrow.disable();
+    arrow.init(viewer);
     $('#straightArrow').click(function () {
-      arrow.draw('straightArrow')
-    })
+      arrow.draw('straightArrow');
+    });
     $('#attackArrow').click(function () {
-      arrow.draw('attackArrow')
-    })
+      arrow.draw('attackArrow');
+    });
     $('#pincerArrow').click(function () {
-      arrow.draw('pincerArrow')
-    })
+      arrow.draw('pincerArrow');
+    });
     $('#clear').click(function () {
-      arrow.clearOne()
-    })
+      arrow.clearOne();
+    });
     $('#save').click(function () {
-      arrow.saveData()
-    })
+      arrow.saveData();
+    });
     $('#show').click(function () {
       $.getJSON('data/arrow.json', function (jsonData) {
-        arrow.showData(jsonData)
-      })
-    })
+        arrow.showData(jsonData);
+      });
+    });
   </script>
 </html>
