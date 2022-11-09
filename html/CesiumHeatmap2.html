@@ -8,13 +8,14 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
-    <title>Cesium热力图1</title>
-    <script src="Cesium/Build/Cesium.js"></script>
+    <title>Cesium热力图2</title>
+    <script src="/Cesium/Build/Cesium.js"></script>
     <link
-      href="Cesium/Build/Widgets/widgets.css"
+      href="/Cesium/Build/Widgets/widgets.css"
       rel="stylesheet" />
-    <script src="plugin/heatmap/heatmap.min.js"></script>
-    <script src="plugin/heatmap/CesiumHeatmap.js"></script>
+    <script src="/plugin/heatmap/heatmap.min.js"></script>
+    <script src="/plugin/heatmap/webgl-heatmap.js"></script>
+    <script src="/plugin/heatmap/CesiumHeatmapGL.js"></script>
     <style>
       html,
       body,
@@ -48,6 +49,10 @@
     <span style="white-space: pre"></span>
 
     <script>
+      /*
+   参考 https://github.com/wangzhongliang/CesiumHeatmap  wangzhongliang/CesiumHeatmap
+   */
+
       //一： ArcGisMapServerImageryProvider
       var esri = new Cesium.ArcGisMapServerImageryProvider({
         url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
@@ -69,7 +74,7 @@
       var heatmap = null;
       function Draw() {
         if (heatmap == null) {
-          heatmap = new CesiumHeatmap(viewer, 'plugin/heatmap/busstop2016.geojson');
+          heatmap = new CesiumHeatmapGL(viewer, 'plugin/heatmap/busstop2016.geojson');
         }
       }
     </script>

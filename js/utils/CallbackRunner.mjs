@@ -1,4 +1,4 @@
-export class Runner {
+export default class Runner {
 	constructor() {
 		this.queue = [];
 	}
@@ -27,6 +27,18 @@ export class Runner {
 			return true;
 		} else {
 			return false;
+		}
+	}
+	destory () {
+		this.queue.splice(0)
+	}
+	reduce (first,...params) {
+		if (this.queue.length > 0) {
+			this.queue.reduce((pre,cur) => {
+				return cur(...pre)
+			},[first,...params])
+		} else {
+			return params.length ? [first,...params] : first;
 		}
 	}
 }

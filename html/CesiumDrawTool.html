@@ -7,15 +7,15 @@
       content="width=device-width, initial-scale=1.0" />
     <title>示例</title>
     <link
-      href="Cesium/Build/Widgets/widgets.css"
+      href="/Cesium/Build/Widgets/widgets.css"
       rel="stylesheet" />
     <link
-      href="plugin/layui-v2.4.5/css/layui.css"
+      href="/plugin/layui-v2.4.5/css/layui.css"
       rel="stylesheet" />
-    <script src="Cesium/Build/Cesium.js"></script>
-    <script src="plugin/layui-v2.4.5/layui.all.js"></script>
-    <script src="plugin/jquery.min.js"></script>
-    <script src="plugin/cesium-measure.js"></script>
+    <script src="/Cesium/Build/Cesium.js"></script>
+    <script src="/plugin/layui-v2.4.5/layui.all.js"></script>
+    <script src="/plugin/jquery.min.js"></script>
+    <script src="/plugin/cesium-measure.js"></script>
     <style>
       * {
         margin: 0;
@@ -120,36 +120,34 @@
       }
       tilesets.readyPromise.then(function (tileset) {
         viewer.flyTo(tileset);
-
-        $('.layui-card-body button').on('click', function () {
-          let text = $(this).text();
-          if (text) {
-            switch (text) {
-              case '不贴地':
-                clampToGround = false;
-                break;
-              case '空间距离':
-                measure.drawLineMeasureGraphics({
-                  clampToGround: clampToGround,
-                  callback: () => {},
-                });
-                break;
-              case '空间面积':
-                measure.drawAreaMeasureGraphics({
-                  clampToGround: clampToGround,
-                  callback: () => {},
-                });
-                break;
-              case '三角量测':
-                measure.drawTrianglesMeasureGraphics({ callback: () => {} });
-                break;
-              case '清除量测':
-                measure._drawLayer.entities.removeAll();
-                break;
-              case '加载模型':
-                loadModel();
-                break;
-            }
+        $('.layui-btn.layui-btn-sm').on('click', function () {
+          let text = $(this).text().trim();
+          switch (text) {
+            case '不贴地':
+              clampToGround = false;
+              break;
+            case '空间距离':
+              console.log('measure 空间距离');
+              measure.drawLineMeasureGraphics({
+                clampToGround: clampToGround,
+                callback: () => {},
+              });
+              break;
+            case '空间面积':
+              measure.drawAreaMeasureGraphics({
+                clampToGround: clampToGround,
+                callback: () => {},
+              });
+              break;
+            case '三角量测':
+              measure.drawTrianglesMeasureGraphics({ callback: () => {} });
+              break;
+            case '清除量测':
+              measure._drawLayer.entities.removeAll();
+              break;
+            case '加载模型':
+              loadModel();
+              break;
           }
         });
       });

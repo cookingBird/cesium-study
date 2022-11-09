@@ -16,6 +16,11 @@ function pickPosition (viewer,cb) {
 		const lng = Cesium.Math.toDegrees(cartographic.longitude);
 		const height = cartographic.height;
 		console.log('[Lng=>' + lng + ',Lat=>' + lat + ',H=>' + height + ']');
+		console.log('Cartesian3',Cesium.Cartesian3.fromDegrees(lng,lat,height))
+		console.log('Cartesian3',Cesium.Cartesian3.fromRadians(
+			cartographic.longitude,
+			cartographic.latitude,
+			cartographic.height))
 		cb && cb({
 			lon: lon,lat: lat,height: height,
 		})
