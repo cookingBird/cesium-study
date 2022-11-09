@@ -1,5 +1,5 @@
 import Event from "./core/event.mjs"
-class Entity {
+export class Entity {
 	constructor(viewer,options) {
 		this.viewer = viewer;
 		this.options = options;

@@ -7,10 +7,12 @@ module.exports = {
 		Test: path.resolve(__dirname,'./js/test.js')
 	},
 	output: {
-		library: "[name]",
-		libraryTarget: "umd",
 		filename: "[name].min.js",
-		// auxiliaryComment: "Test Comment"
+		library: {
+			name: "[name]",
+			// type: "umd",
+			// auxiliaryComment: "Test Comment"
+		},
 	},
 	module: {
 		rules: [
