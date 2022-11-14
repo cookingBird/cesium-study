@@ -1,55 +1,119 @@
+/**
+	* @author dengTao
+	* @Date: 2022-11-1
+	* @Last Modified by: dengTao
+	* @Last Modified time: 2022-11-13
+	***********************************Cesium.Version 1.97*******************************************
+	*/
 import Event from "./core/event.mjs"
-export class Entity {
-	constructor(viewer,options) {
-		this.viewer = viewer;
+import EntityController from "./core/EntityController.js"
+import DataManager from "./core/DataManager.js";
+export class Entity extends EntityController {
+	_moveCancel = null;
+	constructor(viewer, entity, options) {
+		super(viewer, entity);
+		this.entity = null;
+		this.viewer = null;
+		this.event = null;
 		this.options = options;
-		this.position = Cesium.Cartesian3.fromDegrees(
-			options.position[0],options.position[1],options.position[2]
-		);
-		this.draggable = !!options.draggable;
-		if (this.draggable) {
-			this.initDragEvents();
+		this.data = new DataManager(options);
+		if (viewer && viewer instanceof Cesium.Viewer) {
+			this.viewer = viewer;
+			if (entity && entity instanceof Cesium.Entity) {
+				this.entity = entity;
+			} else if (entity === false) {
+				this.entity = this.viewer.entities.add(this.options);
+			} else {
+				throw Error('CesiumEntity init require Cesium.Entity')
+			}
+			if (this.entity) {
+				this.setEntity(this.entity);
+			}
+		} else {
+			throw Error('CesiumEntity init require Cesium.Viewer')
 		}
-		this.entity = new Cesium.Entity({
-			...options,
-			position: new Cesium.CallbackProperty(
-				() => (this.position),
-				this.draggable
-			)
-		});
-		this.event = new Event(viewer,this.entity);
-		this.viewer.entities.add(this.entity)
 	}
-	on (event,cb) {
-		this.event.on(event.cb)
+	on(event, cb) {
+		return this.event.on(event, cb)
 	}
-	off (event,cb) {
-		this.event.off(event.cb)
+	off(event, cb) {
+		return this.event.off(event, cb)
 	}
-	remove () {
+	destory() {
 		this.event.destory();
-		this.viewer.entities.remove(this.entity);
+		super.remove();
+		if (this.popup) {
+			this.popup.remove()
+		}
 	}
-	show () {
-		this.entity.show = true
+	remove() {
+		this.destory();
 	}
-	hidden () {
-		this.entity.show = false
+	initEvent(viewer, entity) {
+		return new Event(viewer, entity)
 	}
-	initDragEvents () {
-		this.on('move',(result) => {
-			this.position = result.cartesian3
-		})
+	initDragEvents() {
+		const drag = this.options.drag;
+		if (drag === true) {
+			this.on('leftdown', () => {
+				if (this._moveCancel) this._moveCancel();
+				this.viewer.scene.screenSpaceCameraController.enableRotate = false;
+				this._moveCancel = this.on('moving', (result) => {
+					this._updatePos(result.cartesian3)
+				})
+			})
+			this.on('leftup', () => {
+				this.viewer.scene.screenSpaceCameraController.enableRotate = true;
+				this._moveCancel && this._moveCancel();
+				this._moveCancel = null;
+			})
+		}
 	}
-	/**
-	 * 
-	 * @param {array} position 
-	 * @param {string} position[0]  lng
-	 * @param {string} position[1] lat 
-	 * @param {string} position[2] height
-	 */
-	update (position) {
-		this.position = Cesium.Cartesian3.fromDegrees(
-			position[0],position[1],position[2])
+	initPopEvents() {
+		const pop = this.options.pop;
+		if (pop) {
+			this.on('click', (res) => {
+				if (!this.popup) {
+					this.popup = new CesiumPopup(pop).setPosition(res.position).addTo(this.viewer)
+					this.popup.on("close", () => { this.popup = null })
+				} else {
+					//重复点击更新位置
+					this.popup.setPosition(res.position)
+				}
+			})
+		}
+	}
+	setViewer(viewer) {
+		if (viewer && viewer instanceof Cesium.Viewer) {
+			this.viewer = viewer;
+			this.event.setViewer(this.viewer);
+			this.viewer.entities.add(this.entity);
+			this.popup.addTo(viewer);
+		}
+	}
+	setEntity(entity) {
+		if (entity instanceof Cesium.Entity) {
+			if (!this.isEntityExist(entity)) {
+				this.entity = this.viewer.entities.add(entity);
+			}
+			super.setEntity(this.entity);
+			this.event = this.initEvent(this.viewer, this.entity);
+			this.initPopEvents();
+			this.initDragEvents();
+		} else {
+			throw Error('CesiumGraphic entity type error')
+		}
+	}
+	isEntityExist(entity) {
+		if (this.viewer) {
+			return !!this.viewer.entities.getById(entity._id)
+		} else {
+			throw Error("viewer don't exist")
+		}
+	}
+	_updatePos(pos) {
+		if (Cesium.defined(pos)) {
+			this.entity.position = pos;
+		}
 	}
 }

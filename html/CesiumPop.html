@@ -6,17 +6,25 @@
     <!-- Tell IE to use the latest, best version. -->
     <meta
       http-equiv="X-UA-Compatible"
-      content="IE=edge" />
+      content="IE=edge"
+    />
     <!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
     <title>自定义弹出窗</title>
     <script src="/Cesium/Build/Cesium.js"></script>
     <link
       href="/Cesium/Build/Widgets/widgets.css"
-      rel="stylesheet" />
-    <script src="/plugin/CesiumPopup.js"></script>
+      rel="stylesheet"
+    />
+    <link
+      href="/plugin/cesium-popup/CesiumPopup.css"
+      rel="stylesheet"
+    />
+    <script src="/plugin/cesium-popup/CesiumPopup.js"></script>
+    <script src="/plugin/cesium-measure.js"></script>
     <style>
       html,
       body,
@@ -53,88 +61,6 @@
         background-color: #303336;
         cursor: pointer;
       }
-
-      /* pop框css*/
-      .cesium-popup-panel {
-        opacity: 0.8;
-        width: 312px;
-        position: absolute;
-        z-index: 999;
-        color: #00fcf9;
-
-        background: rgba(23, 50, 108, 0.6);
-        border: 1px solid #4674d6;
-      }
-
-      .cesium-popup-tip-panel {
-        width: 40px;
-        height: 20px;
-        position: absolute;
-        left: 50%;
-        bottom: -20px;
-        margin-left: -20px;
-        overflow: hidden;
-        pointer-events: none;
-        opacity: 0.8;
-      }
-
-      .cesium-popup-tip-bottom {
-        width: 17px;
-        background: rgba(23, 50, 108, 0.8);
-        border-bottom: 1px solid #4674d6;
-        height: 17px;
-        padding: 1px;
-        margin: -10px auto 0;
-        -webkit-transform: rotate(45deg);
-        -moz-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
-        transform: rotate(45deg);
-      }
-
-      .cesium-popup-header-panel {
-        /* display: flex; */
-        /* justify-content: space-between; */
-        align-items: center;
-        font-size: 14px;
-        padding: 5px 15px;
-        background: rgba(23, 50, 108, 0.8);
-
-        border-bottom: 1px solid #4674d6;
-      }
-
-      .cesium-poput-header-title {
-        font-size: 16px;
-        font-family: Microsoft YaHei;
-        font-weight: 400;
-        color: #ffffff;
-      }
-
-      .cesium-popup-content-panel {
-        padding: 18px;
-      }
-
-      .cesium-popup-close-btn {
-        float: right;
-        position: relative;
-        right: 10px;
-      }
-
-      .cesium-popup-close-btn,
-      .cesium-popup-close-btn:focus {
-        cursor: pointer;
-      }
-
-      cesium-popup-close-btn > svg:hover {
-        color: #00fcf9 !important;
-      }
-
-      .cesium-popup-close-btn > svg {
-        user-select: auto;
-        color: #4674d6;
-        cursor: pointer;
-        width: 15px;
-        /* height: 15px; */
-      }
     </style>
   </head>
 
@@ -143,36 +69,56 @@
     <div class="toolbox">
       <button
         id="zoomIn"
-        class="tool-item">
+        class="tool-item"
+      >
         ++
       </button>
       <button
         id="zoomOut"
-        class="tool-item">
+        class="tool-item"
+      >
         --
+      </button>
+      <button
+        id="angle"
+        class="tool-item"
+      >
+        角度测量
+      </button>
+      <button
+        id="clear"
+        class="tool-item"
+      >
+        清除测量
       </button>
     </div>
     <div id="cesiumContainer"></div>
   </body>
   <script>
     //一： ArcGisMapServerImageryProvider
-    var esri = new Cesium.ArcGisMapServerImageryProvider({
-      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+    // var esri = new Cesium.ArcGisMapServerImageryProvider({
+    //   url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+    //   enablePickFeatures: false,
+    // });
+    var esri = new Cesium.UrlTemplateImageryProvider({
+      url: "http:127.0.0.1:8999/ceshi/{z}/{x}/{y}.png",
       enablePickFeatures: false,
     });
-    var viewer = new Cesium.Viewer('cesiumContainer', {
+    var viewer = new Cesium.Viewer("cesiumContainer", {
       imageryProvider: esri,
       shouldAnimate: true,
       timeline: false,
       animation: false,
       shadow: false,
     });
-    viewer._cesiumWidget._creditContainer.style.display = 'none'; // 隐藏版权
+    viewer._cesiumWidget._creditContainer.style.display = "none"; // 隐藏版权
     viewer.scene.globe.show = true;
     viewer.scene.debugShowFramesPerSecond = true;
+    let measure = new Cesium.Measure(viewer);
+    let clampToGround = false;
 
     var tilesets = new Cesium.Cesium3DTileset({
-      url: 'data/Tileset/tileset.json',
+      url: "/data/Tileset/tileset.json",
       skipLevelOfDetail: true,
       maximumMemoryUsage: 1500,
       maximumScreenSpaceError: 16,
@@ -185,7 +131,7 @@
     });
     tilesets.readyPromise
       .then(function (tileset) {
-        console.log('tileset---------------------------------', tileset);
+        console.log("tileset---------------------------------", tileset);
         viewer.scene.primitives.add(tileset);
         viewer.flyTo(tileset);
       })
@@ -201,38 +147,51 @@
       var pickobject = viewer.scene.pick(movement.position); //取模型
 
       if (pickobject instanceof Cesium.Cesium3DTileFeature) {
-        console.log('pickobject-----------------------------', pickobject);
+        console.log("pickobject-----------------------------", pickobject);
         console.log(
-          'pickobject getPropertyNames-----------------------------',
+          "pickobject getPropertyNames-----------------------------",
           pickobject.getPropertyNames()
         );
-        var html = '';
+        var html = "";
         for (item of pickobject.getPropertyNames()) {
           html +=
-            '<div>' + item + ': ' + pickobject.getProperty(item) + '</div>' + '<br>';
+            "<div>" +
+            item +
+            ": " +
+            pickobject.getProperty(item) +
+            "</div>" +
+            "<br>";
         }
         var a = new CesiumPopup({
-          title: '信息',
+          title: "信息",
         })
           .setPosition(position)
           .setHTML(html)
           .addTo(viewer)
-          .setTitle('详细信息框');
+          .setTitle("详细信息框");
 
-        a.on('close', function () {
-          console.log('close');
+        a.on("close", function () {
+          console.log("close");
         });
 
-        a.on('open', function () {
-          console.log('open');
+        a.on("open", function () {
+          console.log("open");
         });
+        console.log("CesiumPopup", a);
         // console.log(pickobject.getProperty("name"));
         // console.log(pickobject.getProperty("id"));
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
+    // 角度测量
+    document.getElementById("angle").onclick = function () {
+      measure.drawTrianglesMeasureGraphics({ callback: () => {} });
+    };
+    document.getElementById("clear").onclick = function () {
+      measure._drawLayer.entities.removeAll();
+    };
     // 放大缩小
-    document.getElementById('zoomIn').onclick = function () {
+    document.getElementById("zoomIn").onclick = function () {
       // 获取当前镜头位置的笛卡尔坐标
       let cameraPos = viewer.camera.position;
       // 获取当前坐标系标准
@@ -249,7 +208,7 @@
       viewer.camera.zoomIn(height / 3);
     };
 
-    document.getElementById('zoomOut').onclick = function () {
+    document.getElementById("zoomOut").onclick = function () {
       // 获取当前镜头位置的笛卡尔坐标
       let cameraPos = viewer.camera.position;
       // 获取当前坐标系标准
@@ -279,16 +238,16 @@
       var lat = Cesium.Math.toDegrees(cartographic.latitude);
       var lng = Cesium.Math.toDegrees(cartographic.longitude);
       var height = viewer.camera.positionCartographic.height;
-      document.getElementById('infobox').innerHTML =
-        '<span>经度：' +
+      document.getElementById("infobox").innerHTML =
+        "<span>经度：" +
         lng.toFixed(3) +
-        '</span>' +
-        '<span>  纬度：' +
+        "</span>" +
+        "<span>  纬度：" +
         lat.toFixed(3) +
-        '</span>' +
-        '<span>  相机高度：' +
+        "</span>" +
+        "<span>  相机高度：" +
         height +
-        '</span>';
+        "</span>";
       // console.log(lat, lng, height);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
   </script>

@@ -3,14 +3,13 @@ const path = require('path');
 module.exports = {
 	mode: 'production',
 	entry: {
-		MyEntity: path.resolve(__dirname,'./js/MyEntity.js'),
-		Test: path.resolve(__dirname,'./js/test.js')
+		CesiumGraphic: path.resolve(__dirname,'./js/MyEntity.js'),
 	},
 	output: {
 		filename: "[name].min.js",
 		library: {
 			name: "[name]",
-			// type: "umd",
+			type: "var",
 			// auxiliaryComment: "Test Comment"
 		},
 	},

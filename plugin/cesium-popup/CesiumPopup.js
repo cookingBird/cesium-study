@@ -156,6 +156,20 @@ var CesiumPopup = (function () {
     return this
   }
 
+  CesiumPopup.prototype.show = function () {
+    if (_panelContainer) {
+      _panelContainer.style.display = 'block';
+    }
+    return this
+  }
+
+  CesiumPopup.prototype.hide = function () {
+    if (_panelContainer) {
+      _panelContainer.style.display = 'none';
+    }
+    return this
+  }
+
   CesiumPopup.prototype.removeClass = function (className) {
     if (_panelContainer) {
       _panelContainer.classList.remove(className)

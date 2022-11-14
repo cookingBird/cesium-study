@@ -1,48 +1,95 @@
 
+/**
+	* @author dengTao
+	* @Date: 2022-11-1
+	* @Last Modified by: dengTao
+	* @Last Modified time: 2022-11-14
+	*/
 import CallbackRunner from '../utils/CallbackRunner.mjs';
 import debounce from '../utils/debounce.mjs';
+import * as Validator from '../utils/validType.js';
 export default class Event {
-	constructor(viewer,entity) {
-		this.viewer = viewer;
-		this.entity = entity;
+	constructor(viewer, entity) {
 		this.handler = null;
-		this.picker = this.viewer.scene.pick;
+		//LEFT_CLICK
 		this.clickCbs = new CallbackRunner();
 		this.postClick = new CallbackRunner();
+		//LEFT_DOUBLE_CLICK
+		this.doubleClickCbs = new CallbackRunner();
+		this.postDoubleClick = new CallbackRunner();
+		//RIGHT_CLICK
 		this.rightClickCbs = new CallbackRunner();
 		this.postRightClick = new CallbackRunner();
+		//MOUSE_MOVE start EVENTS
 		this.moveCbs = new CallbackRunner();
 		this.postMove = new CallbackRunner();
+		//MOUSE_MOVE EVENTS
 		this.movingCbs = new CallbackRunner();
 		this.postMoving = new CallbackRunner();
+		//MOUSE_MOVE end EVENTS
 		this.movedCbs = new CallbackRunner();
 		this.postMoved = new CallbackRunner();
+		//LEFT_DOWN EVENTS
+		this.leftDownCbs = new CallbackRunner();
+		this.postLeftDownCbs = new CallbackRunner();
+		//LEFT_UP EVENTS
+		this.leftUpCbs = new CallbackRunner();
+		this.postLeftUpCbs = new CallbackRunner();
+		//RIGHT_DOWN EVENTS
+		this.rightDownCbs = new CallbackRunner();
+		this.postRightDownCbs = new CallbackRunner();
+		//RIGHT_UP EVENTS
+		this.rightUpCbs = new CallbackRunner();
+		this.postRightUpCbs = new CallbackRunner();
+		//MOUSE_MOVE EVENTS
+		this.mouseMoveCbs = new CallbackRunner();
+		this.postMouseMoveCbs = new CallbackRunner();
+		//MIDDLE_CLICK EVENTS
+		this.middleClickCbs = new CallbackRunner();
+		this.postMiddleClickCbs = new CallbackRunner();
+		//WHEEL EVENTS
+		this.wheelCbs = new CallbackRunner();
+		this.postWheelCbs = new CallbackRunner();
+
+		if (viewer && viewer instanceof Cesium.Viewer) {
+			this.viewer = viewer;
+		}
+		if (entity && entity instanceof Cesium.Entity) {
+			this.entity = entity;
+		}
+
 		this.isMoving = false;
-		this.movedConfirmor = 300;
+		this.movedConfirmTimer = 300;
+		if (this.viewer && this.entity) {
+			this.initEvents(this.viewer, this.entity);
+		}
 	}
-	initEvents () {
-		this.handler = new Cesium.ScreenSpaceEventHandler(
-			this.viewer.scene.canvas
-		);
+	initEvents(viewer, entity) {
+		this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+		const handler = this.handler;
+		//******************************LEFT_CLICK */
 		handler.setInputAction((event) => {
-			const picked = this.picker(event.position);
-			if (Cesium.defined(picked) && pick.id.id === this.entity.id) {
-				//cartesian2(screen 2D)  x,y
-				const earthPosition = viewer.camera.pickEllipsoid(
-					event.position,
+			const { position } = event;
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
 					viewer.scene.globe.ellipsoid
 				);
 				//longitude<arc>,latitude<arc>,height<H>
 				const cartographic = Cesium.Cartographic.fromCartesian(
-					earthPosition,
+					cartesian3,
 					viewer.scene.globe.ellipsoid,
 					new Cesium.Cartographic()
 				);
-				const cartesian3 = Cesium.Cartesian3.fromRadians(
-					cartographic.longitude,
-					cartographic.latitude,
-					cartographic.height
-				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
 				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
 				const wgs84 = {
 					lat: Cesium.Math.toDegrees(cartographic.latitude),
@@ -50,34 +97,72 @@ export default class Event {
 					height: cartographic.height
 				}
 				const result = this.postClick.reduce({
-					cartesian2: earthPosition,
+					position: pxPosition,
+					cartesian2: position,
 					cartesian3: cartesian3,
 					cartographic: cartographic,
 					wgs84: wgs84,
-					entity: this.entity
+					entity: entity
 				});
 				this.clickCbs.run(result);
 			}
-		},Cesium.ScreenSpaceEventType.LEFT_CLICK);
+		}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+		//*******************************LEFT_DOUBLE_CLICK */
 		handler.setInputAction((event) => {
-			const picked = this.picker(event.position);
-			if (Cesium.defined(picked) && pick.id.id === this.entity.id) {
-				//cartesian2(screen)  x,y
-				const earthPosition = viewer.camera.pickEllipsoid(
-					event.position,
+			const { position } = event;
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
 					viewer.scene.globe.ellipsoid
 				);
 				//longitude<arc>,latitude<arc>,height<H>
 				const cartographic = Cesium.Cartographic.fromCartesian(
-					earthPosition,
+					cartesian3,
 					viewer.scene.globe.ellipsoid,
 					new Cesium.Cartographic()
 				);
-				const cartesian3 = Cesium.Cartesian3.fromRadians(
-					cartographic.longitude,
-					cartographic.latitude,
-					cartographic.height
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = this.postDoubleClick.reduce({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.doubleClickCbs.run(result);
+			}
+		}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+		//******************************RIGHT_CLICK */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
 				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
 				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
 				const wgs84 = {
 					lat: Cesium.Math.toDegrees(cartographic.latitude),
@@ -85,33 +170,32 @@ export default class Event {
 					height: cartographic.height
 				}
 				const result = this.postRightClick.reduce({
-					cartesian2: earthPosition,
+					position: pxPosition,
+					cartesian2: position,
 					cartesian3: cartesian3,
 					cartographic: cartographic,
 					wgs84: wgs84,
-					entity: this.entity
+					entity: entity
 				});
 				this.rightClickCbs.run(result);
 			}
-		},Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-		handler.setInputAction((event) => {
-			const picked = this.picker(event.position);
-			if (Cesium.defined(picked) && pick.id.id === this.entity.id) {
-				//cartesian2(screen)  x,y
-				const earthPosition = viewer.camera.pickEllipsoid(
-					event.position,
+		}, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+		//******************************MOUSE_MOVE */
+		handler.setInputAction(({ endPosition }) => {
+			const pickedObj = viewer.scene.pick(endPosition);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(endPosition);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					endPosition,
 					viewer.scene.globe.ellipsoid
 				);
 				//longitude<arc>,latitude<arc>,height<H>
 				const cartographic = Cesium.Cartographic.fromCartesian(
-					earthPosition,
+					cartesian3,
 					viewer.scene.globe.ellipsoid,
 					new Cesium.Cartographic()
-				);
-				const cartesian3 = Cesium.Cartesian3.fromRadians(
-					cartographic.longitude,
-					cartographic.latitude,
-					cartographic.height
 				);
 				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
 				const wgs84 = {
@@ -120,11 +204,12 @@ export default class Event {
 					height: cartographic.height
 				}
 				const result = ({
-					cartesian2: earthPosition,
+					position: pxPosition,
+					cartesian2: endPosition,
 					cartesian3: cartesian3,
 					cartographic: cartographic,
 					wgs84: wgs84,
-					entity: this.entity
+					entity: entity
 				});
 				if (!this.isMoving) {
 					this.moveCbs.run(this.postMove.reduce(result));
@@ -134,43 +219,358 @@ export default class Event {
 				debounce(() => {
 					this.movedCbs.run(this.postMoved.reduce(result));
 					this.isMoving = false;
-				},this.movedConfirmor)
+				}, this.movedConfirmTimer)
 			}
-		},Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+		}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+		//******************************LEFT_DOWN */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.leftDownCbs.run(this.postLeftDownCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+		//******************************LEFT_UP */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.leftUpCbs.run(this.postLeftUpCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.LEFT_UP);
+		//******************************RIGHT_DOWN */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.rightDownCbs.run(this.postRightDownCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.RIGHT_DOWN);
+		//******************************RIGHT_UP */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				// const cartesian3 = Cesium.Cartesian3.fromRadians(
+				// 	cartographic.longitude,
+				// 	cartographic.latitude,
+				// 	cartographic.height
+				// );
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.rightUpCbs.run(this.postRightUpCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.RIGHT_UP);
+		//******************************MIDDLE_CLICK */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.middleClickCbs.run(this.postMiddleClickCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.MIDDLE_CLICK);
+		//******************************WHEEL */
+		handler.setInputAction(({ position }) => {
+			const pickedObj = viewer.scene.pick(position);
+			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
+				//xy
+				const pxPosition = viewer.scene.pickPosition(position);
+				//cartesian3
+				const cartesian3 = viewer.camera.pickEllipsoid(
+					position,
+					viewer.scene.globe.ellipsoid
+				);
+				//longitude<arc>,latitude<arc>,height<H>
+				const cartographic = Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+				const wgs84 = {
+					lat: Cesium.Math.toDegrees(cartographic.latitude),
+					lng: Cesium.Math.toDegrees(cartographic.longitude),
+					height: cartographic.height
+				}
+				const result = ({
+					position: pxPosition,
+					cartesian2: position,
+					cartesian3: cartesian3,
+					cartographic: cartographic,
+					wgs84: wgs84,
+					entity: entity
+				});
+				this.wheelCbs.run(this.postWheelCbs.reduce(result));
+			}
+		}, Cesium.ScreenSpaceEventType.WHEEL);
 	}
-	on (event,callback) {
+	on(event, callback) {
+		let has = void 0;
 		switch (event) {
 			case 'click':
-				this.clickCbs.push(callback);
+				has = this.clickCbs.has(callback)
+				return has ? has : this.clickCbs.push(callback);
+			case 'doubleclick':
+				has = this.doubleClickCbs.has(callback)
+				return has ? has : this.doubleClickCbs.push(callback);
 			case 'rightclick':
-				this.rightClickCbs.push(callback);
-			case 'moving':
-				this.movingCbs.push(callback);
-			case 'moved':
-				this.movedCbs.push(callback);
+				has = this.rightClickCbs.has(callback)
+				return has ? has : this.rightClickCbs.push(callback);
 			case 'move':
-				this.moveCbs.push(callback);
+				has = this.moveCbs.has(callback)
+				return has ? has : this.moveCbs.push(callback);
+			case 'moving':
+				has = this.movingCbs.has(callback)
+				return has ? has : this.movingCbs.push(callback);
+			case 'moved':
+				has = this.movedCbs.has(callback)
+				return has ? has : this.movedCbs.push(callback);
+			case 'leftdown':
+				has = this.leftDownCbs.has(callback)
+				return has ? has : this.leftDownCbs.push(callback);
+			case 'leftup':
+				has = this.leftUpCbs.has(callback)
+				return has ? has : this.leftUpCbs.push(callback);
+			case 'rightdown':
+				has = this.rightDownCbs.has(callback)
+				return has ? has : this.rightDownCbs.push(callback);
+			case 'rightup':
+				has = this.rightUpCbs.has(callback)
+				return has ? has : this.rightUpCbs.push(callback);
+			case 'middleclick':
+				has = this.middleClickCbs.has(callback)
+				return has ? has : this.middleClickCbs.push(callback);
+			case 'wheel':
+				has = this.wheelCbs.has(callback)
+				return has ? has : this.wheelCbs.push(callback);
 			default:
 				throw Error('on event type error;type is ' + event)
 		}
 	}
-	off (event,callback) {
+	off(event, callback) {
 		switch (event) {
 			case 'click':
-				this.clickCbs.remove(callback);
+				return this.clickCbs.remove(callback);
+			case 'doubleclick':
+				return this.doubleClickCbs.remove(callback);
 			case 'rightclick':
-				this.rightClickCbs.remove(callback);
-			case 'moving':
-				this.movingCbs.remove(callback);
-			case 'moved':
-				this.movedCbs.remove(callback);
+				return this.rightClickCbs.remove(callback);
 			case 'move':
-				this.moveCbs.remove(callback);
+				return this.moveCbs.remove(callback);
+			case 'moving':
+				return this.movingCbs.remove(callback);
+			case 'moved':
+				return this.movedCbs.remove(callback);
+			case 'leftdown':
+				return this.leftDownCbs.remove(callback);
+			case 'leftup':
+				return this.leftUpCbs.remove(callback);
+			case 'rightdown':
+				return this.rightDownCbs.remove(callback);
+			case 'rightup':
+				return this.rightUpCbs.remove(callback);
+			case 'middelclick':
+				return this.middleClickCbs.remove(callback);
+			case 'wheel':
+				return this.wheelCbs.remove(callback);
 			default:
 				throw Error('off event type error;type is ' + event)
 		}
 	}
-	destory () {
-		this.handler.destory()
+	destory() {
+		this.handler.destory();
+		//LEFT_CLICK
+		this.clickCbs.destory();
+		this.postClick.destory();
+		//RIGHT_CLICK
+		this.rightClickCbs.destory();
+		this.postRightClick.destory();
+		//start move EVENTS
+		this.moveCbs.destory();
+		this.postMove.destory();
+		//moving EVENTS
+		this.movingCbs.destory();
+		this.postMoving.destory();
+		//moved EVENTS
+		this.movedCbs.destory();
+		this.postMoved.destory();
+		//LEFT_DOWN EVENTS
+		this.leftDownCbs.destory();
+		this.postLeftDownCbs.destory();
+		//LEFT_UP EVENTS
+		this.leftUpCbs.destory();
+		this.postLeftUpCbs.destory();
+		//RIGHT_DOWN EVENTS
+		this.rightDownCbs.destory();
+		this.postRightDownCbs.destory();
+		//RIGHT_UP EVENTS
+		this.rightUpCbs.destory();
+		this.postRightUpCbs.destory();
+	}
+	setViewer(viewer) {
+		if (viewer && viewer instanceof Cesium.Viewer) {
+			this.viewer = viewer;
+		} else {
+			const type = Validator.typeIs(viewer);
+			throw Error(`setViewer Error, type is ${type}`);
+		}
+		if (this.entity) {
+			this.initEvents(this.viewer, this.entity);
+		}
+	}
+	setEntity(entity) {
+		if (entity && entity instanceof Cesium.Entity) {
+			this.entity = entity;
+		} else {
+			const type = Validator.typeIs(entity);
+			throw Error(`setViewer Error, type is ${type}`);
+		}
+		if (this.viewer) {
+			this.initEvents(this.viewer, this.entity);
+		}
 	}
 }

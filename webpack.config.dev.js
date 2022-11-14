@@ -3,14 +3,16 @@ const path = require('path');
 module.exports = {
 	mode: 'development',
 	entry: {
-		Test: path.resolve(__dirname,'./js/test.js'),
-		CesiumUtils: path.resolve(__dirname,'./js/Entity.js'),
+		CesiumGraphic: path.resolve(__dirname, './js/Entity.js'),
+		CesiumMeasure: path.resolve(__dirname, './plugin/cesium-measure.js'),
 	},
 	output: {
+		path: path.resolve(__dirname, 'Build'),
 		filename: "[name].js",
 		library: {
 			name: "[name]",
 			type: "var",
+			// export: 'default'
 			// auxiliaryComment: "Test Comment"
 		},
 		scriptType: 'text/javascript'

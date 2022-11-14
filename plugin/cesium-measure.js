@@ -1,6 +1,5 @@
 ; if (typeof Cesium !== 'undefined')
 	/**
-  
 	* @author zhangti
 	* @param viewer  {object} 三维对象
 	* @param options {object} 初始化参数
@@ -14,8 +13,7 @@
 		 * @param options 
 		 * @constructor
 		 */
-		function _ (viewer,options = {}) {
-
+		function _(viewer, options = {}) {
 			if (viewer && viewer instanceof Cesium.Viewer) {
 				this._drawLayer = new Cesium.CustomDataSource('measureLayer')
 
@@ -34,7 +32,7 @@
 			 * 
 			 * @return {Object} Cartesian3 三维位置坐标
 			 */
-			transformWGS84ToCartesian: function (position,alt) {
+			transformWGS84ToCartesian: function (position, alt) {
 				if (this._viewer) {
 					return position
 						? Cesium.Cartesian3.fromDegrees(
@@ -53,11 +51,11 @@
 			* @param {Number} alt 拔高
 			* @return {Array} Cartesian3 三维位置坐标数组
 			*/
-			transformWGS84ArrayToCartesianArray: function (WSG84Arr,alt) {
+			transformWGS84ArrayToCartesianArray: function (WSG84Arr, alt) {
 				if (this._viewer && WSG84Arr) {
 					var $this = this
 					return WSG84Arr
-						? WSG84Arr.map(function (item) { return $this.transformWGS84ToCartesian(item,alt) })
+						? WSG84Arr.map(function (item) { return $this.transformWGS84ToCartesian(item, alt) })
 						: []
 				}
 			},
@@ -120,7 +118,7 @@
 				if (this._viewer && px) {
 					var picks = this._viewer.scene.drillPick(px)
 					var cartesian = null;
-					var isOn3dtiles = false,isOnTerrain = false;
+					var isOn3dtiles = false, isOnTerrain = false;
 					// drillPick
 					for (let i in picks) {
 						let pick = picks[i]
@@ -140,9 +138,9 @@
 								let cartographic = Cesium.Cartographic.fromCartesian(cartesian);
 								if (cartographic.height < 0) cartographic.height = 0;
 								let lon = Cesium.Math.toDegrees(cartographic.longitude)
-									,lat = Cesium.Math.toDegrees(cartographic.latitude)
-									,height = cartographic.height;
-								cartesian = this.transformWGS84ToCartesian({ lng: lon,lat: lat,alt: height })
+									, lat = Cesium.Math.toDegrees(cartographic.latitude)
+									, height = cartographic.height;
+								cartesian = this.transformWGS84ToCartesian({ lng: lon, lat: lat, alt: height })
 
 							}
 						}
@@ -153,18 +151,18 @@
 					if (!isOn3dtiles && !boolTerrain) {
 						var ray = this._viewer.scene.camera.getPickRay(px);
 						if (!ray) return null;
-						cartesian = this._viewer.scene.globe.pick(ray,this._viewer.scene);
+						cartesian = this._viewer.scene.globe.pick(ray, this._viewer.scene);
 						isOnTerrain = true
 					}
 					// 地球
 					if (!isOn3dtiles && !isOnTerrain && boolTerrain) {
 
-						cartesian = this._viewer.scene.camera.pickEllipsoid(px,this._viewer.scene.globe.ellipsoid);
+						cartesian = this._viewer.scene.camera.pickEllipsoid(px, this._viewer.scene.globe.ellipsoid);
 					}
 					if (cartesian) {
 						let position = this.transformCartesianToWGS84(cartesian)
 						if (position.alt < 0) {
-							cartesian = this.transformWGS84ToCartesian(position,0.1)
+							cartesian = this.transformWGS84ToCartesian(position, 0.1)
 						}
 						return cartesian;
 					}
@@ -182,11 +180,11 @@
 					let point1cartographic = this.transformWGS84ToCartographic(positions[i])
 					let point2cartographic = this.transformWGS84ToCartographic(positions[i + 1])
 					let geodesic = new Cesium.EllipsoidGeodesic()
-					geodesic.setEndPoints(point1cartographic,point2cartographic)
+					geodesic.setEndPoints(point1cartographic, point2cartographic)
 					let s = geodesic.surfaceDistance
 					s = Math.sqrt(
-						Math.pow(s,2) +
-						Math.pow(point2cartographic.height - point1cartographic.height,2)
+						Math.pow(s, 2) +
+						Math.pow(point2cartographic.height - point1cartographic.height, 2)
 					)
 					distance = distance + s
 				}
@@ -222,7 +220,7 @@
 			drawLineMeasureGraphics: function (options = {}) {
 				if (this._viewer && options) {
 
-					var positions = [],_lineEntity = new Cesium.Entity(),$this = this,lineObj,
+					var positions = [], _lineEntity = new Cesium.Entity(), $this = this, lineObj,
 						_handlers = new Cesium.ScreenSpaceEventHandler(this._viewer.scene.canvas);
 					// left
 					_handlers.setInputAction(function (movement) {
@@ -236,7 +234,7 @@
 							_addInfoPoint(cartesian)
 							positions.push(cartesian);
 						}
-					},Cesium.ScreenSpaceEventType.LEFT_CLICK);
+					}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
 					_handlers.setInputAction(function (movement) {
 
@@ -247,7 +245,7 @@
 								positions.push(cartesian);
 							}
 						}
-					},Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+					}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 					// right
 					_handlers.setInputAction(function (movement) {
 
@@ -259,23 +257,23 @@
 
 						if (typeof options.callback === 'function') {
 
-							options.callback($this.transformCartesianArrayToWGS84Array(positions),lineObj);
+							options.callback($this.transformCartesianArrayToWGS84Array(positions), lineObj);
 						}
-					},Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+					}, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
 					_lineEntity.polyline = {
 						width: options.width || 5
-						,material: options.material || Cesium.Color.BLUE.withAlpha(0.8)
-						,clampToGround: options.clampToGround || false
+						, material: options.material || Cesium.Color.BLUE.withAlpha(0.8)
+						, clampToGround: options.clampToGround || false
 					}
 					_lineEntity.polyline.positions = new Cesium.CallbackProperty(function () {
 						return positions
-					},false)
+					}, false)
 
 					lineObj = this._drawLayer.entities.add(_lineEntity)
 
 					//添加坐标点
-					function _addInfoPoint (position) {
+					function _addInfoPoint(position) {
 						_labelEntity = new Cesium.Entity()
 						_labelEntity.position = position
 						_labelEntity.point = {
@@ -290,7 +288,7 @@
 							font: '14px monospace',
 							horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
 							verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-							pixelOffset: new Cesium.Cartesian2(-20,-80) //left top
+							pixelOffset: new Cesium.Cartesian2(-20, -80) //left top
 						}
 						$this._drawLayer.entities.add(_labelEntity)
 					}
@@ -305,7 +303,7 @@
 
 				if (this._viewer && options) {
 
-					var positions = [],polygon = new Cesium.PolygonHierarchy(),_polygonEntity = new Cesium.Entity(),$this = this,polyObj = null,_label = '',
+					var positions = [], polygon = new Cesium.PolygonHierarchy(), _polygonEntity = new Cesium.Entity(), $this = this, polyObj = null, _label = '',
 						_handler = new Cesium.ScreenSpaceEventHandler(this._viewer.scene.canvas);
 					// left
 					_handler.setInputAction(function (movement) {
@@ -321,7 +319,7 @@
 
 							if (!polyObj) create()
 						}
-					},Cesium.ScreenSpaceEventType.LEFT_CLICK);
+					}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 					// mouse
 					_handler.setInputAction(function (movement) {
 
@@ -335,7 +333,7 @@
 								polygon.positions.push(cartesian);
 							}
 						}
-					},Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+					}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
 					// right
 					_handler.setInputAction(function (movement) {
@@ -349,35 +347,35 @@
 						_addInfoPoint(positions[0])
 						if (typeof options.callback === 'function') {
 
-							options.callback($this.transformCartesianArrayToWGS84Array(positions),polyObj);
+							options.callback($this.transformCartesianArrayToWGS84Array(positions), polyObj);
 						}
-					},Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+					}, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
-					function create () {
+					function create() {
 						_polygonEntity.polyline = {
 							width: 3
-							,material: Cesium.Color.BLUE.withAlpha(0.8)
-							,clampToGround: options.clampToGround || false
+							, material: Cesium.Color.BLUE.withAlpha(0.8)
+							, clampToGround: options.clampToGround || false
 						}
 
 						_polygonEntity.polyline.positions = new Cesium.CallbackProperty(function () {
 							return positions
-						},false)
+						}, false)
 
 						_polygonEntity.polygon = {
 
 							hierarchy: new Cesium.CallbackProperty(function () {
 								return polygon
-							},false),
+							}, false),
 
 							material: Cesium.Color.WHITE.withAlpha(0.1)
-							,clampToGround: options.clampToGround || false
+							, clampToGround: options.clampToGround || false
 						}
 
 						polyObj = $this._drawLayer.entities.add(_polygonEntity)
 					}
 
-					function _addInfoPoint (position) {
+					function _addInfoPoint(position) {
 						var _labelEntity = new Cesium.Entity()
 						_labelEntity.position = position
 						_labelEntity.point = {
@@ -392,7 +390,7 @@
 							font: '14px monospace',
 							horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
 							verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-							pixelOffset: new Cesium.Cartesian2(-20,-50) //left top
+							pixelOffset: new Cesium.Cartesian2(-20, -50) //left top
 						}
 						$this._drawLayer.entities.add(_labelEntity)
 					}
@@ -406,24 +404,23 @@
 			drawTrianglesMeasureGraphics: function (options = {}) {
 				options.style = options.style ||
 				{
-					width: 3
-					,material: Cesium.Color.BLUE.withAlpha(0.5)
+					width: 3, material: Cesium.Color.BLUE.withAlpha(0.5)
 				}
 				if (this._viewer && options) {
 
-					var _trianglesEntity = new Cesium.Entity(),_tempLineEntity = new Cesium.Entity(),_tempLineEntity2 = new Cesium.Entity(),
-						_positions = [],_tempPoints = [],_tempPoints2 = [],$this = this,
+					var _trianglesEntity = new Cesium.Entity(), _tempLineEntity = new Cesium.Entity(), _tempLineEntity2 = new Cesium.Entity(),
+						_positions = [], _tempPoints = [], _tempPoints2 = [], $this = this,
 						_handler = new Cesium.ScreenSpaceEventHandler(this._viewer.scene.canvas);
 					// 高度
-					function _getHeading (startPosition,endPosition) {
+					function _getHeading(startPosition, endPosition) {
 						if (!startPosition && !endPosition) return 0
-						if (Cesium.Cartesian3.equals(startPosition,endPosition)) return 0
+						if (Cesium.Cartesian3.equals(startPosition, endPosition)) return 0
 						let cartographic = Cesium.Cartographic.fromCartesian(startPosition);
 						let cartographic2 = Cesium.Cartographic.fromCartesian(endPosition);
 						return (cartographic2.height - cartographic.height).toFixed(2)
 					}
 					// 偏移点
-					function _computesHorizontalLine (positions) {
+					function _computesHorizontalLine(positions) {
 						let cartographic = Cesium.Cartographic.fromCartesian(positions[0]);
 						let cartographic2 = Cesium.Cartographic.fromCartesian(positions[1]);
 						return Cesium.Cartesian3.fromDegrees(
@@ -446,10 +443,10 @@
 							_handler.destroy();
 							if (typeof options.callback === 'function') {
 
-								options.callback({ e: _trianglesEntity,e2: _tempLineEntity,e3: _tempLineEntity2 });
+								options.callback({ e: _trianglesEntity, e2: _tempLineEntity, e3: _tempLineEntity2 });
 							}
 						}
-					},Cesium.ScreenSpaceEventType.LEFT_CLICK);
+					}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 					// mouse
 					_handler.setInputAction(function (movement) {
 
@@ -463,11 +460,12 @@
 							_tempPoints.pop()
 							_tempPoints.push(horizontalPosition.clone())
 							//水平线
-							_tempPoints2.pop(),_tempPoints2.pop()
+							_tempPoints2.pop()
+							_tempPoints2.pop()
 							_tempPoints2.push(position.clone())
 							_tempPoints2.push(horizontalPosition.clone())
 						}
-					},Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+					}, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
 
 					// create entity
 
@@ -475,12 +473,12 @@
 					_trianglesEntity.polyline = {
 						positions: new Cesium.CallbackProperty(function () {
 							return _positions
-						},false),
+						}, false),
 						...options.style
 					}
 					_trianglesEntity.position = new Cesium.CallbackProperty(function () {
 						return _positions[0]
-					},false)
+					}, false)
 					_trianglesEntity.point = {
 						pixelSize: 5,
 						outlineColor: Cesium.Color.BLUE,
@@ -489,24 +487,24 @@
 					_trianglesEntity.label = {
 						text: new Cesium.CallbackProperty(function () {
 							return '直线:' + $this.getPositionDistance($this.transformCartesianArrayToWGS84Array(_positions)) + '米'
-						},false),
+						}, false),
 						show: true,
 						showBackground: true,
 						font: '14px monospace',
 						horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
 						verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-						pixelOffset: new Cesium.Cartesian2(50,-100) //left top
+						pixelOffset: new Cesium.Cartesian2(50, -100) //left top
 					}
 					//高度
 					_tempLineEntity.polyline = {
 						positions: new Cesium.CallbackProperty(function () {
 							return _tempPoints
-						},false),
+						}, false),
 						...options.style
 					}
 					_tempLineEntity.position = new Cesium.CallbackProperty(function () {
 						return _tempPoints2[1]
-					},false)
+					}, false)
 					_tempLineEntity.point = {
 						pixelSize: 5,
 						outlineColor: Cesium.Color.BLUE,
@@ -514,25 +512,25 @@
 					}
 					_tempLineEntity.label = {
 						text: new Cesium.CallbackProperty(function () {
-							return '高度:' + _getHeading(_tempPoints[0],_tempPoints[1]) + '米'
-						},false),
+							return '高度:' + _getHeading(_tempPoints[0], _tempPoints[1]) + '米'
+						}, false),
 						show: true,
 						showBackground: true,
 						font: '14px monospace',
 						horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
 						verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-						pixelOffset: new Cesium.Cartesian2(-20,100) //left top
+						pixelOffset: new Cesium.Cartesian2(-20, 100) //left top
 					}
 					//水平
 					_tempLineEntity2.polyline = {
 						positions: new Cesium.CallbackProperty(function () {
 							return _tempPoints2
-						},false),
+						}, false),
 						...options.style
 					}
 					_tempLineEntity2.position = new Cesium.CallbackProperty(function () {
 						return _positions[1]
-					},false)
+					}, false)
 					_tempLineEntity2.point = {
 						pixelSize: 5,
 						outlineColor: Cesium.Color.BLUE,
@@ -541,13 +539,13 @@
 					_tempLineEntity2.label = {
 						text: new Cesium.CallbackProperty(function () {
 							return '水平距离:' + $this.getPositionDistance($this.transformCartesianArrayToWGS84Array(_tempPoints2)) + '米'
-						},false),
+						}, false),
 						show: true,
 						showBackground: true,
 						font: '14px monospace',
 						horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
 						verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-						pixelOffset: new Cesium.Cartesian2(-150,-20) //left top
+						pixelOffset: new Cesium.Cartesian2(-150, -20) //left top
 					}
 					this._drawLayer.entities.add(_tempLineEntity2)
 					this._drawLayer.entities.add(_tempLineEntity)
