@@ -6,21 +6,17 @@
     <script src="/Cesium/Build/Cesium.js"></script>
     <link
       href="/Cesium/Build/Widgets/widgets.css"
-      rel="stylesheet"
-    />
+      rel="stylesheet" />
     <script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
     <link
       href="/plugin/cesium-navigator/CesiumNavigation.css"
-      rel="stylesheet"
-    />
+      rel="stylesheet" />
     <script
       type="text/javascript"
-      src="/js/pickPosition.js"
-    ></script>
+      src="/js/pickPosition.js"></script>
     <script
       type="text/javascript"
-      src="/dist/CesiumGraphic.js"
-    ></script>
+      src="/Build/CesiumGraphic.js"></script>
     <link
       href="/plugin/cesium-popup/CesiumPopup.css"
       rel="stylesheet" />
@@ -66,12 +62,7 @@
       //navigator
       function initNavigator(viewer) {
         const options = {};
-        options.defaultResetView = lngLat2Cartographic(
-          viewer,
-          122,
-          31.9922,
-          1000000
-        );
+        options.defaultResetView = lngLat2Cartographic(viewer, 122, 31.9922, 1000000);
         options.enableCompass = true;
         options.enableZoomControls = true;
         options.enableDistanceLegend = true;
@@ -86,16 +77,16 @@
         50
       );
       // //1:本地服务
-      var imageryProvider = new Cesium.UrlTemplateImageryProvider({
-        url: "http:127.0.0.1:8999/ceshi/{z}/{x}/{y}.png",
-        enablePickFeatures: false,
-      });
-      // //1:在线arcgis 在线服务
-      // var imageryProvider = new Cesium.ArcGisMapServerImageryProvider({
-      //   url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer', //微信影像服务
-      //   //url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer',//地形服务
+      // var imageryProvider = new Cesium.UrlTemplateImageryProvider({
+      //   url: 'http:127.0.0.1:8999/ceshi/{z}/{x}/{y}.png',
       //   enablePickFeatures: false,
       // });
+      // //1:在线arcgis 在线服务
+      var imageryProvider = new Cesium.ArcGisMapServerImageryProvider({
+        url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer', //微信影像服务
+        //url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer',//地形服务
+        enablePickFeatures: false,
+      });
       //2:本地geoserver EPSG:4326 wmts服务
       // var imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
       //     url: 'http://10.113.114.21:8080/geoserver/gwc/service/wmts/rest/map1:map2out//EPSG:4326/EPSG:4326:{TileMatrix}/{TileRow}/{TileCol}?format=image/png',
@@ -116,7 +107,7 @@
       //   format: 'image/png',
       //   tileMatrixSetID: 'EPSG:900913',
       // });
-      var viewer = new Cesium.Viewer("cesiumContainer", {
+      var viewer = new Cesium.Viewer('cesiumContainer', {
         imageryProvider: imageryProvider,
         navigationHelpButton: false,
         timeline: false,
@@ -124,7 +115,7 @@
         fullscreenButton: false,
         geocoder: false,
         baseLayerPicker: false,
-        creditContainer: "cesium-logo",
+        creditContainer: 'cesium-logo',
         infoBox: false,
       });
       initNavigator(viewer);
@@ -134,7 +125,7 @@
       };
       viewer.camera.flyTo(dest);
       function DynamicLabel(viewer, options) {
-        CesiumGraphic.Entity.call(this,viewer,void 0,options);
+        CesiumGraphic.Entity.call(this, viewer, void 0, options);
         this.viewer = viewer;
         this.options = options;
         this.entity = new Cesium.Entity({
@@ -143,8 +134,8 @@
         });
         this.setEntity(this.entity);
       }
-      DynamicLabel.prototype = Object.create(CesiumGraphic.Entity.prototype)
-      DynamicLabel.prototype.constructor = DynamicLabel
+      DynamicLabel.prototype = Object.create(CesiumGraphic.Entity.prototype);
+      DynamicLabel.prototype.constructor = DynamicLabel;
       DynamicLabel.prototype.getPos = function () {
         const res = getPosition(this.options);
         return res;
@@ -152,12 +143,12 @@
 
       const entity = new DynamicLabel(viewer, {
         drag: true,
-        pop:{ title: '测试'},
-        name: "test",
+        pop: { title: '测试' },
+        name: 'test',
         lng: 122,
         lat: 31.9922,
         billboard: {
-          image: "/data/location4.png",
+          image: '/data/location4.png',
         },
       });
       setTimeout(() => {

@@ -1,4 +1,4 @@
-import Event from "./core/event.mjs"
+import Event from "./core/Event.js"
 function MyEntity (viewer,options) {
 	this.viewer = viewer;
 	this.options = options;

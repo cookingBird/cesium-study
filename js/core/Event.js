@@ -8,9 +8,11 @@
 import CallbackRunner from '../utils/CallbackRunner.mjs';
 import debounce from '../utils/debounce.mjs';
 import * as Validator from '../utils/validType.js';
+import * as Transform from "../utils/PositionTransform"
 export default class Event {
+	_handler = null;
+	handler = null;
 	constructor(viewer, entity) {
-		this.handler = null;
 		//LEFT_CLICK
 		this.clickCbs = new CallbackRunner();
 		this.postClick = new CallbackRunner();
@@ -65,8 +67,9 @@ export default class Event {
 		}
 	}
 	initEvents(viewer, entity) {
-		this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-		const handler = this.handler;
+		this._handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+		const handler = this._handler;
+		this.handler = handler;
 		//******************************LEFT_CLICK */
 		handler.setInputAction((event) => {
 			const { position } = event;
@@ -414,38 +417,38 @@ export default class Event {
 			}
 		}, Cesium.ScreenSpaceEventType.MIDDLE_CLICK);
 		//******************************WHEEL */
-		handler.setInputAction(({ position }) => {
-			const pickedObj = viewer.scene.pick(position);
-			if (Cesium.defined(pickedObj) && pickedObj.id.id === entity.id) {
-				//xy
-				const pxPosition = viewer.scene.pickPosition(position);
-				//cartesian3
-				const cartesian3 = viewer.camera.pickEllipsoid(
-					position,
-					viewer.scene.globe.ellipsoid
-				);
-				//longitude<arc>,latitude<arc>,height<H>
-				const cartographic = Cesium.Cartographic.fromCartesian(
-					cartesian3,
-					viewer.scene.globe.ellipsoid,
-					new Cesium.Cartographic()
-				);
-				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
-				const wgs84 = {
-					lat: Cesium.Math.toDegrees(cartographic.latitude),
-					lng: Cesium.Math.toDegrees(cartographic.longitude),
-					height: cartographic.height
-				}
-				const result = ({
-					position: pxPosition,
-					cartesian2: position,
-					cartesian3: cartesian3,
-					cartographic: cartographic,
-					wgs84: wgs84,
-					entity: entity
-				});
-				this.wheelCbs.run(this.postWheelCbs.reduce(result));
+		handler.setInputAction((res) => {
+			// res < zoom >
+			//cartesian3
+			let cartesian3 = this.entity.position;
+			if (cartesian3 instanceof Cesium.CallbackProperty) {
+				cartesian3 = cartesian3._callback();
 			}
+			//xy
+			const pxPosition = Transform.cartesian3ToWindowPosition(cartesian3, this.viewer);
+
+			//longitude<arc>,latitude<arc>,height<H>
+			const cartographic = Cesium.Cartographic.fromCartesian(
+				cartesian3,
+				viewer.scene.globe.ellipsoid,
+				new Cesium.Cartographic()
+			);
+			//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
+			const wgs84 = {
+				lat: Cesium.Math.toDegrees(cartographic.latitude),
+				lng: Cesium.Math.toDegrees(cartographic.longitude),
+				height: cartographic.height
+			}
+			const result = ({
+				position: pxPosition,
+				cartesian2: pxPosition,
+				cartesian3: cartesian3,
+				cartographic: cartographic,
+				zoom: res,
+				wgs84: wgs84,
+				entity: entity
+			});
+			this.wheelCbs.run(this.postWheelCbs.reduce(result));
 		}, Cesium.ScreenSpaceEventType.WHEEL);
 	}
 	on(event, callback) {
@@ -522,7 +525,9 @@ export default class Event {
 		}
 	}
 	destory() {
-		this.handler.destory();
+		if (this._handler && !this._handler.isDestroyed()) {
+			this.handler.destroy();
+		}
 		//LEFT_CLICK
 		this.clickCbs.destory();
 		this.postClick.destory();
