@@ -593,7 +593,7 @@ const CesiumMeasure = function (Cesium) {
   return _;
 };
 
-export default function install(Cesium) {
+function install(Cesium) {
   if (typeof Cesium !== 'undefined') {
     Cesium.Measure = CesiumMeasure(Cesium);
   }

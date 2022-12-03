@@ -2,9 +2,11 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
+  // devtool: 'eval',
   entry: {
-    CesiumGraphic: path.resolve(__dirname, './js/Entity.js'),
+    // CesiumGraphic: path.resolve(__dirname, './js/Entity.js'),
     CesiumMeasure: path.resolve(__dirname, './plugin/cesium-measure.js'),
+    // CesiumPopup: path.resolve(__dirname, './plugin/cesium-popup/CesiumPopup.js'),
   },
   output: {
     path: path.resolve(__dirname, 'Build'),
@@ -12,11 +14,14 @@ module.exports = {
     library: {
       name: '[name]',
       type: 'umd',
+      // export: 'CesiumPopup',
       // export: 'default',
-      // auxiliaryComment: "Test Comment"
     },
-    // globalObject: 'window',
+    // globalObject: 'window',//default 'self'
     scriptType: 'text/javascript',
+  },
+  resolve: {
+    extensions: ['.js', '.mjs', '.css'],
   },
   module: {
     rules: [
