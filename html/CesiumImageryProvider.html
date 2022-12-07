@@ -21,7 +21,7 @@
 			href="/plugin/cesium-popup/CesiumPopup.css"
 			rel="stylesheet" />
 		<script src="/Build/CesiumPopup.js"></script>
-		<script src="/Build/CesiumPolylineEditorPlugin.js"></script>
+		<script src="/Build/CesiumPolyEditorPlugin.js"></script>
 		<style>
 			html,
 			body {
@@ -176,13 +176,7 @@
 			// 	entityLine.polyline.positions = res;
 			// 	console.log('+++++++++++++++++++--entityLine', entityLine);
 			// }, 3000);
-			const pluginEntity = new CesiumPolylineEditorPlugin(viewer, entityLine, {
-				show: true,
-				billboard: {
-					image: '/data/location4.png',
-					scale: 0.9,
-				},
-			});
+			const pluginEntity = new CesiumPolyEditorPlugin(viewer, entityLine);
 			console.log('-----------------entityLine', pluginEntity);
 		</script>
 	</body>

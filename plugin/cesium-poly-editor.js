@@ -1,11 +1,13 @@
 import { Entity } from '../js/Entity';
 import { debounce, merge } from 'lodash-es';
-import icon from '/data/location4.png';
+import icon from '/data/point.png';
 import CallbackProperty from '../js/utils/CallbackRunner.mjs';
+import HorizontalOrigin from '/Cesium/Source/Scene/HorizontalOrigin.js';
+import VerticalOrigin from '/Cesium/Source/Scene/VerticalOrigin.js';
 
 export const VERSION = 1.0;
 
-export default class CesiumPloylineEditorPlugin {
+export default class CesiumPloyEditorPlugin {
 	_viewer = null;
 	_polylineEntity = null;
 	_options = null;
@@ -15,6 +17,7 @@ export default class CesiumPloylineEditorPlugin {
 		drag: true,
 		billboard: {
 			image: icon,
+			scale: 1.5,
 		},
 	};
 	constructor(viewer, polylineEntity, options) {
@@ -23,55 +26,44 @@ export default class CesiumPloylineEditorPlugin {
 		this._polylineEntity = polylineEntity;
 		this._options = options;
 		const img = this._options?.billboard?.image || icon;
-		const position = this._options?.billboard?.position || 'center-bottom';
-		this.getOffset(img, position).then((_) => {
-			this._initPoint();
-		});
+		const position = this._options?.billboard?.position;
+		this.getOffset(position);
+		this._initPoint();
 	}
-	getOffset(img, position) {
-		const imgInstance = new Image();
-		imgInstance.src = img;
-		return new Promise((resolve, reject) => {
-			imgInstance.onload = (res) => {
-				const width = imgInstance.naturalHeight;
-				const height = imgInstance.naturalWidth;
-				const p = position?.split('-');
-				let xOffset = 0;
-				let yOffset = 0;
-				if (p) {
-					const xTag = p[0];
-					const yTag = p[1];
-					if (xTag) {
-						if (xTag === 'left') {
-							xOffset = -(width / 2);
-						}
-						if (xTag === 'center') {
-							xOffset = 0;
-						}
-						if (xTag === 'right') {
-							xOffset = width / 2;
-						}
-					}
-					if (yTag) {
-						if (yTag === 'top') {
-							yOffset = height / 2;
-						}
-						if (yTag === 'middle') {
-							yOffset = 0;
-						}
-						if (yTag === 'bottom') {
-							yOffset = -(height / 2);
-						}
-					}
+	getOffset(position) {
+		const p = position?.split('-');
+		let xOffset = 0;
+		let yOffset = 0;
+		if (p) {
+			const xTag = p[0];
+			const yTag = p[1];
+			if (xTag) {
+				if (xTag === 'left') {
+					xOffset = -(width / 2);
+					this._defaultOptions.billboard.horizontalOrigin = HorizontalOrigin.LEFT;
 				}
-				this._defaultOptions.billboard.pixelOffset = new Cesium.Cartesian2(
-					xOffset,
-					yOffset
-				);
-				console.log('_defaultOptions', this._defaultOptions);
-				resolve();
-			};
-		});
+				if (xTag === 'center') {
+					xOffset = 0;
+				}
+				if (xTag === 'right') {
+					xOffset = width / 2;
+					this._defaultOptions.billboard.horizontalOrigin = HorizontalOrigin.RIGHT;
+				}
+			}
+			if (yTag) {
+				if (yTag === 'top') {
+					yOffset = height / 2;
+					this._defaultOptions.billboard.verticalOrigin = VerticalOrigin.TOP;
+				}
+				if (yTag === 'middle') {
+					yOffset = 0;
+				}
+				if (yTag === 'bottom') {
+					yOffset = -(height / 2) + 5;
+					this._defaultOptions.billboard.verticalOrigin = VerticalOrigin.BOTTOM;
+				}
+			}
+		}
 	}
 	onupdate(callback) {
 		const has = this._updateCb.has(callback);

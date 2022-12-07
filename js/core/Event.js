@@ -61,7 +61,7 @@ export default class Event {
 		}
 
 		this.isMoving = false;
-		this.movedConfirmTimer = 300;
+		this.movedConfirmTimer = 500;
 		if (this.viewer && this.entity) {
 			this.initEvents(this.viewer, this.entity);
 			this.initDragEvents();
@@ -376,11 +376,6 @@ export default class Event {
 						viewer.scene.globe.ellipsoid,
 						new Cesium.Cartographic()
 					);
-				// const cartesian3 = Cesium.Cartesian3.fromRadians(
-				// 	cartographic.longitude,
-				// 	cartographic.latitude,
-				// 	cartographic.height
-				// );
 				//longitude<wgs84.lon>,latitude<wgs84.lon.lat>,height<H>
 				const wgs84 = cartesian3 && {
 					lat: Cesium.Math.toDegrees(cartographic.latitude),

@@ -43,6 +43,7 @@ export class Entity extends EntityController {
 	}
 	destory() {
 		this.event.destory();
+		this.__cursorHandler.destory();
 		super.remove();
 		if (this.popup) {
 			this.popup.remove();
@@ -72,6 +73,32 @@ export class Entity extends EntityController {
 			}
 		});
 	}
+	setCursor() {
+		const viewer = this.viewer;
+		const cursor = this.options.cursor || 'pointer';
+		this.on('moving', () => {
+			const raw = viewer._container.style.cursor;
+			if (raw !== cursor) {
+				viewer._container.style.cursor = cursor;
+			}
+		});
+		//不在entity上时，cursor为默认样式；
+		if (!this.__cursorHandler) {
+			const viewer = this.viewer;
+			const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+			this.__cursorHandler = handler;
+			handler.setInputAction((event) => {
+				const { endPosition } = event;
+				const pickedObj = viewer.scene.pick(endPosition);
+				if (!pickedObj) {
+					const raw = viewer._container.style.cursor;
+					if (raw !== 'default') {
+						viewer._container.style.cursor = 'default';
+					}
+				}
+			}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+		}
+	}
 	setViewer(viewer) {
 		if (viewer && viewer instanceof Cesium.Viewer) {
 			this.viewer = viewer;
@@ -95,6 +122,7 @@ export class Entity extends EntityController {
 			if (pop) {
 				this.initPopEvents();
 			}
+			this.setCursor();
 		} else {
 			throw Error('CesiumGraphic entity type error');
 		}
