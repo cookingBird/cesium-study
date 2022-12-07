@@ -7,16 +7,16 @@
 		<link
 			href="/Cesium/Build/Widgets/widgets.css"
 			rel="stylesheet" />
-		<script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
+		<!-- <script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
 		<link
 			href="/plugin/cesium-navigator/CesiumNavigation.css"
-			rel="stylesheet" />
+			rel="stylesheet" /> -->
 		<script
 			type="text/javascript"
 			src="/js/pickPosition.js"></script>
 		<script
 			type="text/javascript"
-			src="/Build/CesiumGraphic.min.js"></script>
+			src="/Build/CesiumGraphic.js"></script>
 		<link
 			href="/plugin/cesium-popup/CesiumPopup.css"
 			rel="stylesheet" />
@@ -68,7 +68,7 @@
 				options.enableZoomControls = true;
 				options.enableDistanceLegend = true;
 				options.enableCompassOuterRing = true;
-				CesiumNavigation(viewer, options);
+				// CesiumNavigation(viewer, options);
 			}
 			// 设置在中国
 			Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
@@ -141,6 +141,12 @@
 				const res = getPosition(this.options);
 				return res;
 			};
+			DynamicLabel.prototype.update = function (pos) {
+				this.options = {
+					...this.options,
+					...pos,
+				};
+			};
 
 			const entity = new DynamicLabel(viewer, {
 				drag: true,
@@ -152,28 +158,28 @@
 					image: '/data/location4.png',
 				},
 			});
-			const pos = [122, 31.9922, 124.3, 31.9922, 126.5, 35, 124.7, 35];
-			const positions = new Cesium.Cartesian3.fromDegreesArray(pos);
-			const entityLine = viewer.entities.add({
-				drag: true,
-				pop: { title: '测试' },
-				name: 'test',
-				polygon: {
-					hierarchy: new Cesium.PolygonHierarchy(positions),
-				},
-			});
-
-			// setTimeout(() => {
-			// 	const pos = positions[0];
-			// 	pos.lat = pos.y + 10000;
-			// 	const res = positions.slice();
-			// 	res.splice(0, 1, pos);
-			// 	console.log('------------------------res', res);
-			// 	entityLine.polyline.positions = res;
-			// 	console.log('+++++++++++++++++++--entityLine', entityLine);
-			// }, 3000);
-			const pluginEntity = new CesiumPolyEditorPlugin(viewer, entityLine);
-			console.log('-----------------entityLine', entityLine);
+			// const pos = [122, 31.9922, 124.3, 31.9922, 126.5, 35, 124.7, 35];
+			// const positions = new Cesium.Cartesian3.fromDegreesArray(pos);
+			// const entityLine = viewer.entities.add({
+			// 	drag: true,
+			// 	pop: { title: '测试' },
+			// 	name: 'test',
+			// 	polygon: {
+			// 		hierarchy: new Cesium.PolygonHierarchy(positions),
+			// 	},
+			// });
+			setInterval(() => {
+				const raw = entity.options;
+				const { lng, lat } = raw;
+				const pos = {
+					lng: Math.floor(Math.random() * 10) + lng,
+					lat: Math.floor(Math.random() * 10) + lat,
+				};
+				entity.update(pos);
+				console.log('+++++++++++++++++++--entityLine', entity);
+			}, 1000);
+			// const pluginEntity = new CesiumPolyEditorPlugin(viewer, entityLine);
+			// console.log('-----------------entityLine', entity);
 		</script>
 	</body>
 </html>

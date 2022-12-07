@@ -7,7 +7,7 @@ import VerticalOrigin from '/Cesium/Source/Scene/VerticalOrigin.js';
 
 export const VERSION = 1.0;
 
-export default class CesiumPloyEditorPlugin {
+export class CesiumPloyEditorPlugin {
 	_viewer = null;
 	_polylineEntity = null;
 	_options = null;
@@ -161,3 +161,5 @@ export default class CesiumPloyEditorPlugin {
 		this._polylineEntity = null;
 	}
 }
+
+export default CesiumPloyEditorPlugin;

@@ -46,7 +46,10 @@ export class Entity extends EntityController {
 		this.__cursorHandler.destory();
 		super.remove();
 		if (this.popup) {
+			this._popCallbackCancel();
+			this._popCallbackCancel = null;
 			this.popup.remove();
+			this.popup = null;
 		}
 	}
 	remove() {
@@ -60,11 +63,22 @@ export class Entity extends EntityController {
 			this._updatePos(result.cartesian3);
 		});
 	}
-	initPopEvents() {
+	initPopEvents(pop) {
+		const entity = this.entity;
+		const viewer = this.viewer;
+		const position = entity.position;
 		return this.on('click', (res) => {
 			if (!this.popup) {
-				this.popup = new CesiumPopup(pop).setPosition(res.position).addTo(this.viewer);
+				this.popup = new CesiumPopup(pop).setPosition(res.position).addTo(viewer);
+				if (position instanceof Cesium.CallbackProperty) {
+					const rawPositionCallback = entity.position._callback;
+					this._popCallbackCancel = viewer.scene.postRender.addEventListener(() => {
+						this.popup.setPosition(rawPositionCallback());
+					});
+				}
 				this.popup.on('close', () => {
+					this._popCallbackCancel();
+					this._popCallbackCancel = null;
 					this.popup = null;
 				});
 			} else {
@@ -120,7 +134,7 @@ export class Entity extends EntityController {
 			}
 			const pop = this.options.pop;
 			if (pop) {
-				this.initPopEvents();
+				this.initPopEvents(pop);
 			}
 			this.setCursor();
 		} else {

@@ -4,7 +4,7 @@ const base = require('./webpack.config.base');
 
 const prod = {
 	mode: 'production',
-	devtool: 'source-map',
+	// devtool: 'source-map',
 	entry: {
 		// CesiumGraphic: path.resolve(__dirname, './js/Entity.js'),
 		CesiumMeasure: path.resolve(__dirname, './plugin/cesium-measure.js'),
