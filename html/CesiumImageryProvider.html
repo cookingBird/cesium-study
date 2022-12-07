@@ -152,18 +152,14 @@
 					image: '/data/location4.png',
 				},
 			});
-			const pos = [
-				122, 31.9922, 124.3, 31.9922, 126.5, 31.9922, 128.7, 31.9922, 130.9, 31.9922,
-			];
+			const pos = [122, 31.9922, 124.3, 31.9922, 126.5, 35, 124.7, 35];
 			const positions = new Cesium.Cartesian3.fromDegreesArray(pos);
 			const entityLine = viewer.entities.add({
 				drag: true,
 				pop: { title: '测试' },
 				name: 'test',
-				polyline: {
-					positions,
-					material: Cesium.Color.RED,
-					width: 2,
+				polygon: {
+					hierarchy: new Cesium.PolygonHierarchy(positions),
 				},
 			});
 
@@ -177,7 +173,7 @@
 			// 	console.log('+++++++++++++++++++--entityLine', entityLine);
 			// }, 3000);
 			const pluginEntity = new CesiumPolyEditorPlugin(viewer, entityLine);
-			console.log('-----------------entityLine', pluginEntity);
+			console.log('-----------------entityLine', entityLine);
 		</script>
 	</body>
 </html>

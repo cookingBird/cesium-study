@@ -578,18 +578,22 @@ export default class Event {
 		this.postRightUpCbs.destory();
 	}
 	initDragEvents() {
-		this.on('leftdown', () => {
-			if (this._moveCancel) this._moveCancel();
-			this.viewer.scene.screenSpaceCameraController.enableRotate = false;
-			this._moveCancel = this.on('moving', (result) => {
-				this.dragCbs.run(result);
+		if (!this.__dragLeftDown) {
+			this.__dragLeftDown = this.on('leftdown', () => {
+				if (this._moveCancel) this._moveCancel();
+				this.viewer.scene.screenSpaceCameraController.enableRotate = false;
+				this._moveCancel = this.on('moving', (result) => {
+					this.dragCbs.run(result);
+				});
 			});
-		});
-		this.on('leftup', () => {
-			this.viewer.scene.screenSpaceCameraController.enableRotate = true;
-			this._moveCancel && this._moveCancel();
-			this._moveCancel = null;
-		});
+		}
+		if (!this.__dragLeftUp) {
+			this.__dragLeftUp = this.on('leftup', () => {
+				this.viewer.scene.screenSpaceCameraController.enableRotate = true;
+				this._moveCancel && this._moveCancel();
+				this._moveCancel = null;
+			});
+		}
 	}
 	setViewer(viewer) {
 		if (viewer && viewer instanceof Cesium.Viewer) {

@@ -1,6 +1,8 @@
 const path = require('path');
+const { merge } = require('webpack-merge');
+const base = require('./webpack.config.base');
 
-module.exports = {
+const dev = {
 	mode: 'development',
 	// devtool: 'eval',
 	entry: {
@@ -20,28 +22,6 @@ module.exports = {
 		// globalObject: 'window',//default 'self'
 		scriptType: 'text/javascript',
 	},
-	resolve: {
-		extensions: ['.js', '.mjs', '.css'],
-		fallback: {
-			cesium: path.resolve(__dirname, 'Cesium/Source/Cesium.js'),
-		},
-	},
-	module: {
-		rules: [
-			{
-				test: /\.m?js$/,
-				exclude: /node_modules/,
-				use: {
-					loader: 'babel-loader',
-					options: {
-						presets: ['@babel/preset-env'],
-					},
-				},
-			},
-			{
-				test: /\.(png|svg|jpg|jpeg|gif)$/i,
-				type: 'asset',
-			},
-		],
-	},
 };
+
+module.exports = merge(base, dev);

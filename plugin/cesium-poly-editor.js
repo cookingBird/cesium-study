@@ -20,6 +20,8 @@ export default class CesiumPloyEditorPlugin {
 			scale: 1.5,
 		},
 	};
+	_isPolyline = () => this._polylineEntity.polyline;
+	_isPolygon = () => this._polylineEntity.polygon;
 	constructor(viewer, polylineEntity, options) {
 		this._viewer = viewer;
 		this._updatePos = debounce(this._updatePos, 100, true);
@@ -70,25 +72,45 @@ export default class CesiumPloyEditorPlugin {
 		return has ? has : () => this._updateCb.off(callback);
 	}
 	_getPostions() {
-		const positions = this._polylineEntity.polyline.positions;
-		if (positions instanceof Cesium.ConstantProperty) {
-			const pos = positions._value;
-			return pos;
+		if (this._isPolyline()) {
+			const positions = this._polylineEntity.polyline.positions;
+			if (positions instanceof Cesium.ConstantProperty) {
+				const pos = positions._value;
+				return pos;
+			}
+			if (positions instanceof Cesium.CallbackProperty) {
+				const pos = position._callback();
+				return pos;
+			}
 		}
-		if (positions instanceof Cesium.CallbackProperty) {
-			const pos = position._callback();
-			return pos;
+		if (this._isPolygon()) {
+			const hierarchy = this._polylineEntity.polygon.hierarchy;
+			if (hierarchy instanceof Cesium.ConstantProperty) {
+				const pos = hierarchy._value.positions;
+				return pos;
+			}
+			if (hierarchy instanceof Cesium.CallbackProperty) {
+				const pos = hierarchy._callback().positions;
+				return pos;
+			}
 		}
 	}
 	_initPoint() {
 		const positions = this._getPostions();
 		this._movePointerEntity = this._getPointsAndInitEvents(positions);
 	}
-	_updatePos(cartesian3Arr, cartesian3, index) {
+	_updatePos(property, cartesian3, index) {
 		const viewer = this._viewer;
-		const positions = cartesian3Arr.slice();
-		positions.splice(index, 1, cartesian3);
-		this._polylineEntity.polyline.positions = positions;
+		if (this._isPolyline()) {
+			const positions = property.slice();
+			positions.splice(index, 1, cartesian3);
+			this._polylineEntity.polyline.positions = positions;
+		}
+		if (this._isPolygon()) {
+			const positions = property.slice();
+			positions.splice(index, 1, cartesian3);
+			this._polylineEntity.polygon.hierarchy = new Cesium.PolygonHierarchy(positions);
+		}
 		//转换成经纬度坐标
 		const wgs84Positions = positions.map((cartesian3) => {
 			//longitude<arc>,latitude<arc>,height<H>
