@@ -1,163 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>各类底图加载</title>
-    <script src="/Cesium/Build/Cesium.js"></script>
-    <link
-      href="/Cesium/Build/Widgets/widgets.css"
-      rel="stylesheet" />
-    <script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
-    <link
-      href="/plugin/cesium-navigator/CesiumNavigation.css"
-      rel="stylesheet" />
-    <script
-      type="text/javascript"
-      src="/js/pickPosition.js"></script>
-    <script
-      type="text/javascript"
-      src="/Build/CesiumGraphic.js"></script>
-    <link
-      href="/plugin/cesium-popup/CesiumPopup.css"
-      rel="stylesheet" />
-    <script src="/plugin/cesium-popup/CesiumPopup.js"></script>
-    <style>
-      html,
-      body {
-        display: block;
-        margin: 0;
-        height: 100%;
-      }
+	<head>
+		<meta charset="UTF-8" />
+		<title>各类底图加载</title>
+		<script src="/Cesium/Build/Cesium.js"></script>
+		<link
+			href="/Cesium/Build/Widgets/widgets.css"
+			rel="stylesheet" />
+		<script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
+		<link
+			href="/plugin/cesium-navigator/CesiumNavigation.css"
+			rel="stylesheet" />
+		<script
+			type="text/javascript"
+			src="/js/pickPosition.js"></script>
+		<script
+			type="text/javascript"
+			src="/Build/CesiumGraphic.min.js"></script>
+		<link
+			href="/plugin/cesium-popup/CesiumPopup.css"
+			rel="stylesheet" />
+		<script src="/Build/CesiumPopup.js"></script>
+		<script src="/Build/CesiumPolylineEditorPlugin.js"></script>
+		<style>
+			html,
+			body {
+				display: block;
+				margin: 0;
+				height: 100%;
+			}
 
-      #cesiumContainer {
-        height: 100%;
-      }
-    </style>
-  </head>
+			#cesiumContainer {
+				height: 100%;
+			}
+		</style>
+	</head>
 
-  <body>
-    <div id="cesium-logo"></div>
-    <div id="cesiumContainer"></div>
-    <script>
-      function getPosition(options) {
-        if (!options) return null;
-        if (options.lng && options.lat) {
-          const { lng, lat, height } = options;
-          return Cesium.Cartesian3.fromDegrees(lng, lat, height);
-        }
-        if (options.position && Array.isArray(options.position)) {
-          const { position } = options;
-          return Cesium.Cartesian3.fromDegrees(position);
-        }
-      }
-      //lnglat2gategraphic
-      function lngLat2Cartographic(viewer, lng, lat, height) {
-        const cartesian3 = Cesium.Cartesian3.fromDegrees(lng, lat, height);
-        return Cesium.Cartographic.fromCartesian(
-          cartesian3,
-          viewer.scene.globe.ellipsoid,
-          new Cesium.Cartographic()
-        );
-      }
-      //navigator
-      function initNavigator(viewer) {
-        const options = {};
-        options.defaultResetView = lngLat2Cartographic(viewer, 122, 31.9922, 1000000);
-        options.enableCompass = true;
-        options.enableZoomControls = true;
-        options.enableDistanceLegend = true;
-        options.enableCompassOuterRing = true;
-        CesiumNavigation(viewer, options);
-      }
-      // 设置在中国
-      Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
-        80,
-        22,
-        130,
-        50
-      );
-      // //1:本地服务
-      // var imageryProvider = new Cesium.UrlTemplateImageryProvider({
-      //   url: 'http:127.0.0.1:8999/ceshi/{z}/{x}/{y}.png',
-      //   enablePickFeatures: false,
-      // });
-      // //1:在线arcgis 在线服务
-      var imageryProvider = new Cesium.ArcGisMapServerImageryProvider({
-        url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer', //微信影像服务
-        //url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer',//地形服务
-        enablePickFeatures: false,
-      });
-      //2:本地geoserver EPSG:4326 wmts服务
-      // var imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
-      //     url: 'http://10.113.114.21:8080/geoserver/gwc/service/wmts/rest/map1:map2out//EPSG:4326/EPSG:4326:{TileMatrix}/{TileRow}/{TileCol}?format=image/png',
-      //     layer: 'map1:map2out',
-      //     style: '',
-      //     format: 'image/png',
-      //     tileMatrixSetID: 'EPSG:4326',
-      //     tilingScheme: new Cesium.GeographicTilingScheme({
-      //         numberOfLevelZeroTilesX: 2,
-      //         numberOfLevelZeroTilesY: 1
-      //     })
-      // });
-      //3:本地geoserver EPSG:900913球形墨卡托 wmts服务
-      // var imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
-      //   url: 'http://10.113.114.21:8080/geoserver/gwc/service/wmts/rest/map1:map1out//EPSG:900913/EPSG:900913:{TileMatrix}/{TileRow}/{TileCol}?format=image/png',
-      //   layer: 'map1:map1out',
-      //   style: '',
-      //   format: 'image/png',
-      //   tileMatrixSetID: 'EPSG:900913',
-      // });
-      var viewer = new Cesium.Viewer('cesiumContainer', {
-        imageryProvider: imageryProvider,
-        navigationHelpButton: false,
-        timeline: false,
-        animation: false,
-        fullscreenButton: false,
-        geocoder: false,
-        baseLayerPicker: false,
-        creditContainer: 'cesium-logo',
-        infoBox: false,
-      });
-      initNavigator(viewer);
-      // pickPosition(viewer);
-      const dest = {
-        destination: Cesium.Cartesian3.fromDegrees(122, 31.9922, 1000000),
-      };
-      viewer.camera.flyTo(dest);
-      function DynamicLabel(viewer, options) {
-        CesiumGraphic.Entity.call(this, viewer, void 0, options);
-        this.viewer = viewer;
-        this.options = options;
-        this.entity = new Cesium.Entity({
-          ...options,
-          position: new Cesium.CallbackProperty(() => this.getPos(), true),
-        });
-        this.setEntity(this.entity);
-      }
-      DynamicLabel.prototype = Object.create(CesiumGraphic.Entity.prototype);
-      DynamicLabel.prototype.constructor = DynamicLabel;
-      DynamicLabel.prototype.getPos = function () {
-        const res = getPosition(this.options);
-        return res;
-      };
+	<body>
+		<div id="cesium-logo"></div>
+		<div id="cesiumContainer"></div>
+		<script>
+			function getPosition(options) {
+				if (!options) return null;
+				if (options.lng && options.lat) {
+					const { lng, lat, height } = options;
+					return Cesium.Cartesian3.fromDegrees(lng, lat, height);
+				}
+				if (options.position && Array.isArray(options.position)) {
+					const { position } = options;
+					return Cesium.Cartesian3.fromDegrees(position);
+				}
+			}
+			//lnglat2gategraphic
+			function lngLat2Cartographic(viewer, lng, lat, height) {
+				const cartesian3 = Cesium.Cartesian3.fromDegrees(lng, lat, height);
+				return Cesium.Cartographic.fromCartesian(
+					cartesian3,
+					viewer.scene.globe.ellipsoid,
+					new Cesium.Cartographic()
+				);
+			}
+			//navigator
+			function initNavigator(viewer) {
+				const options = {};
+				options.defaultResetView = lngLat2Cartographic(viewer, 122, 31.9922, 1000000);
+				options.enableCompass = true;
+				options.enableZoomControls = true;
+				options.enableDistanceLegend = true;
+				options.enableCompassOuterRing = true;
+				CesiumNavigation(viewer, options);
+			}
+			// 设置在中国
+			Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
+				80,
+				22,
+				130,
+				50
+			);
+			// //1:本地服务
+			// var imageryProvider = new Cesium.UrlTemplateImageryProvider({
+			//   url: 'http:127.0.0.1:8999/ceshi/{z}/{x}/{y}.png',
+			//   enablePickFeatures: false,
+			// });
+			// //1:在线arcgis 在线服务
+			var imageryProvider = new Cesium.ArcGisMapServerImageryProvider({
+				url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer', //微信影像服务
+				//url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer',//地形服务
+				enablePickFeatures: false,
+			});
+			//2:本地geoserver EPSG:4326 wmts服务
+			// var imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+			//     url: 'http://10.113.114.21:8080/geoserver/gwc/service/wmts/rest/map1:map2out//EPSG:4326/EPSG:4326:{TileMatrix}/{TileRow}/{TileCol}?format=image/png',
+			//     layer: 'map1:map2out',
+			//     style: '',
+			//     format: 'image/png',
+			//     tileMatrixSetID: 'EPSG:4326',
+			//     tilingScheme: new Cesium.GeographicTilingScheme({
+			//         numberOfLevelZeroTilesX: 2,
+			//         numberOfLevelZeroTilesY: 1
+			//     })
+			// });
+			//3:本地geoserver EPSG:900913球形墨卡托 wmts服务
+			// var imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+			//   url: 'http://10.113.114.21:8080/geoserver/gwc/service/wmts/rest/map1:map1out//EPSG:900913/EPSG:900913:{TileMatrix}/{TileRow}/{TileCol}?format=image/png',
+			//   layer: 'map1:map1out',
+			//   style: '',
+			//   format: 'image/png',
+			//   tileMatrixSetID: 'EPSG:900913',
+			// });
+			var viewer = new Cesium.Viewer('cesiumContainer', {
+				imageryProvider: imageryProvider,
+				navigationHelpButton: false,
+				timeline: false,
+				animation: false,
+				fullscreenButton: false,
+				geocoder: false,
+				baseLayerPicker: false,
+				creditContainer: 'cesium-logo',
+				infoBox: false,
+			});
+			initNavigator(viewer);
+			// pickPosition(viewer);
+			const dest = {
+				destination: Cesium.Cartesian3.fromDegrees(122, 31.9922, 1000000),
+			};
+			viewer.camera.flyTo(dest);
+			function DynamicLabel(viewer, options) {
+				CesiumGraphic.Entity.call(this, viewer, void 0, options);
+				this.viewer = viewer;
+				this.options = options;
+				this.entity = new Cesium.Entity({
+					...options,
+					position: new Cesium.CallbackProperty(() => this.getPos(), true),
+				});
+				this.setEntity(this.entity);
+			}
+			DynamicLabel.prototype = Object.create(CesiumGraphic.Entity.prototype);
+			DynamicLabel.prototype.constructor = DynamicLabel;
+			DynamicLabel.prototype.getPos = function () {
+				const res = getPosition(this.options);
+				return res;
+			};
 
-      const entity = new DynamicLabel(viewer, {
-        drag: true,
-        pop: { title: '测试' },
-        name: 'test',
-        lng: 122,
-        lat: 31.9922,
-        billboard: {
-          image: '/data/location4.png',
-        },
-      });
-      setTimeout(() => {
-        entity.hide();
-      }, 1000);
-      setTimeout(() => {
-        entity.show();
-      }, 3000);
-      // viewer.camera.flyTo(entity);
-    </script>
-  </body>
+			const entity = new DynamicLabel(viewer, {
+				drag: true,
+				pop: { title: '测试' },
+				name: 'test',
+				lng: 122,
+				lat: 31.9922,
+				billboard: {
+					image: '/data/location4.png',
+				},
+			});
+			const pos = [
+				122, 31.9922, 124.3, 31.9922, 126.5, 31.9922, 128.7, 31.9922, 130.9, 31.9922,
+			];
+			const positions = new Cesium.Cartesian3.fromDegreesArray(pos);
+			const entityLine = viewer.entities.add({
+				drag: true,
+				pop: { title: '测试' },
+				name: 'test',
+				polyline: {
+					positions,
+					material: Cesium.Color.RED,
+					width: 2,
+				},
+			});
+
+			// setTimeout(() => {
+			// 	const pos = positions[0];
+			// 	pos.lat = pos.y + 10000;
+			// 	const res = positions.slice();
+			// 	res.splice(0, 1, pos);
+			// 	console.log('------------------------res', res);
+			// 	entityLine.polyline.positions = res;
+			// 	console.log('+++++++++++++++++++--entityLine', entityLine);
+			// }, 3000);
+			const pluginEntity = new CesiumPolylineEditorPlugin(viewer, entityLine, {
+				show: true,
+				billboard: {
+					image: '/data/location4.png',
+					scale: 0.9,
+				},
+			});
+			console.log('-----------------entityLine', pluginEntity);
+		</script>
+	</body>
 </html>

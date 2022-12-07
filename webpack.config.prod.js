@@ -14,7 +14,7 @@ module.exports = {
     library: {
       name: '[name]',
       type: 'umd',
-      // export: 'CesiumPopup',
+      // export: 'default',
       // auxiliaryComment: "Test Comment"
     },
   },

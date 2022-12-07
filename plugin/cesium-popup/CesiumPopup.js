@@ -33,7 +33,7 @@ BaseEvent.prototype.emit = function () {
   this.cached[arguments[0]] = Array.prototype.slice.call(arguments, 1);
 };
 
-export const CesiumPopup = (function () {
+export default (function () {
   var _panelContainer = null;
   var _contentContainer = null;
   var _closeBtn = null;
