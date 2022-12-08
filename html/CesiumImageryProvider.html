@@ -7,10 +7,10 @@
 		<link
 			href="/Cesium/Build/Widgets/widgets.css"
 			rel="stylesheet" />
-		<!-- <script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
+		<script src="/plugin/cesium-navigator/CesiumNavigation.js"></script>
 		<link
 			href="/plugin/cesium-navigator/CesiumNavigation.css"
-			rel="stylesheet" /> -->
+			rel="stylesheet" />
 		<script
 			type="text/javascript"
 			src="/js/pickPosition.js"></script>
@@ -68,7 +68,7 @@
 				options.enableZoomControls = true;
 				options.enableDistanceLegend = true;
 				options.enableCompassOuterRing = true;
-				// CesiumNavigation(viewer, options);
+				CesiumNavigation(viewer, options);
 			}
 			// 设置在中国
 			Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
